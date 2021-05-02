@@ -1,0 +1,6 @@
+{
+    "sketch": "test_send_serial/test_send_serial.ino",
+    "board": "arduino:avr:uno",
+    "port": "/dev/ttyACM0",
+    "programmer": "arduino:avrispmkii"
+}
