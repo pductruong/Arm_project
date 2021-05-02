@@ -7,17 +7,14 @@ void setup() {
 }
 
 void loop() {
-    Serial.print('F');
-    Serial.print(a);
-    // Serial.print(",");
-    Serial.println("");
-    Serial.print('S');
-    Serial.print(b);
-    // Serial.print(",");
-    Serial.println("");
-    while (1)
-    {
-    
+
+    while (1){
+      Serial.print('F');
+      Serial.print(a);
+      Serial.println("");
+
+      Serial.print('S');
+      Serial.print(b);
+      Serial.println("");
     }
-    
 }
