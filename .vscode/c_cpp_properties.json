@@ -18,6 +18,7 @@
             "name": "Arduino",
             "compilerPath": "/home/tucuman/Downloads/arduino-1.8.13/hardware/tools/avr/bin/avr-g++",
             "compilerArgs": [
+                "-w",
                 "-std=gnu++11",
                 "-fpermissive",
                 "-fno-exceptions",

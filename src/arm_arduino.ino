@@ -1,22 +1,23 @@
 #include <Servo.h>
 
-#define r2p 3200/360  //convert rev to pul
+#define r2p 6400/360  //convert deg to pul
+#define ratito1 5.0
+#define ratito2 5.0
 
-int PUL[2] = {1, 2};
-int DIR[2] = {3, 4};
-int EN[2] = {5, 6};
-int servoPin[2] = {7, 8};
+int PUL[2] = {13, 12};
+int DIR[2] = {11, 10};
+int EN[2] = {9, 8};
+int servoPin[3] = {9, 10, 11}; //3 servo
 
-int list_state[5][4] = {
-    {1, 2, 3, 4},
-    {1, 2, 3, 4},
-    {1, 2, 3, 4},
-    {1, 2, 3, 4},
-    {1, 2, 3, 4}};              //list state
-int home[4] = {0, 0, 0, 0};     //home state
+int list_state[5][5] = {
+    {1, 2, 3, 4, 5},
+    {1, 2, 3, 4, 5},
+    {1, 2, 3, 4, 5},
+    {1, 2, 3, 4, 5},
+    {1, 2, 3, 4, 5}};               //list state
+int home[5] = {0, 0, 0, 0, 0};     //home state
 int cur_state[2] = {0, 0};      //current state
 
-volatile int MODE;
 bool stringComplete = false;
 String step1 = "";              //string to get data step1 from uart
 String step2 = "";              //string to get data step1 from uart
@@ -35,7 +36,10 @@ void setup()
                 pinMode(PUL[i], OUTPUT);
                 pinMode(DIR[i], OUTPUT);
                 pinMode(EN[i], OUTPUT);
-                servos[i].attach(servoPin[i]);
+        }
+        for (int j = 0; j < 3;  j++)
+        {
+                servos[j].attach(servoPin[j]);
         }
 }
 
@@ -45,9 +49,10 @@ void loop()
         {
                 step1_lastest = step1.toInt();
                 step2_lastest = step2.toInt();
-                // Serial.println(step1_lastest);
-                // Serial.println(step2_lastest);
-                cur_state[2] = {step1_lastest, step2_lastest};
+                Serial.println(step1_lastest);
+                Serial.println(step2_lastest);
+                cur_state[0] = step1_lastest;
+                cur_state[1] = step2_lastest;
                 while (true)
                 {
                         go_home(cur_state, home);
@@ -69,11 +74,11 @@ void serialEvent()
                 {
                         char inChar = (char)Serial.read();
                         // Serial.println(inChar);
-                        if(inChar == '#')
+                        if(inChar == '$')
                         {
                                 ck = 1;
                         }
-                        if (inChar == ' ')
+                        if (inChar == '#')
                         {
                                 ck = 2;
                                 stringComplete = true;
@@ -91,9 +96,9 @@ void serialEvent()
 }
 
 //Function go home state
-void go_home(int current_state[2], int home[4])
+void go_home(int current_state[2], int home[5])
 {
-        for (int i = 0; i < 4; i++)
+        for (int i = 0; i < 5; i++)
         {
                 if (i < 2)
                 {
@@ -134,33 +139,69 @@ void go_home(int current_state[2], int home[4])
 }
 
 //Function go to state
-void fn_go_state(int current_state[2],int goal_state[5][4])
+void fn_go_state(int current_state[2],int goal_state[5][5])
 {
         for (int i = 0; i < 5; i++)
         {
-                for (int j = 0; j< 4; j++)
+                for (int j = 0; j< 5; j++)
                 {
                         if(j < 2){
                                 if(goal_state[i][j] < current_state[j]){
                                         digitalWrite(DIR[j], LOW);
-                                        for (int k = 0; i < (current_state[i]-goal_state[i][j])*r2p; i++)
-                                        {
-                                                digitalWrite(PUL[i], HIGH);
-                                                delayMicroseconds(500);
-                                                digitalWrite(PUL[i], LOW);
-                                                delayMicroseconds(500);
-                                                cur_state[j] = (int)k/r2p;
+                                        if(j == 0){
+                                                for (int k = 0; k < (current_state[i]-goal_state[i][j])*r2p*ratito1; k++)
+                                                {
+                                                        digitalWrite(PUL[i], HIGH);
+                                                        delayMicroseconds(500);
+                                                        digitalWrite(PUL[i], LOW);
+                                                        delayMicroseconds(500);
+                                                        cur_state[j] = (int)k/r2p;
+                                                        Serial.print('F');
+                                                        Serial.print(cur_state[i]);
+                                                        Serial.println("");
+                                                }
+                                        }
+                                        else{
+                                                for (int k = 0; k < (current_state[i]-goal_state[i][j])*r2p*ratito2; k++)
+                                                {
+                                                        digitalWrite(PUL[i], HIGH);
+                                                        delayMicroseconds(500);
+                                                        digitalWrite(PUL[i], LOW);
+                                                        delayMicroseconds(500);
+                                                        cur_state[j] = (int)k/r2p;
+                                                        Serial.print('S');
+                                                        Serial.print(cur_state[i]);
+                                                        Serial.println("");  
+                                                }
                                         }
                                 }
-                                if(goal_state[i][j] < current_state[j]){
-                                        digitalWrite(DIR[j], HIGH);
-                                        for (int k = 0; i < (-current_state[i]+goal_state[i][j])*r2p; i++)
-                                        {
-                                                digitalWrite(PUL[i], HIGH);
-                                                delayMicroseconds(500);
-                                                digitalWrite(PUL[i], LOW);
-                                                delayMicroseconds(500);
-                                                cur_state[j] = (int)k/r2p;
+                                if(goal_state[i][j] > current_state[j]){
+                                digitalWrite(DIR[j], HIGH);
+                                        if(j == 0){
+                                                for (float k = 0; k < (-current_state[i]+goal_state[i][j])*r2p*ratito1; k++)
+                                                {
+                                                        digitalWrite(PUL[i], HIGH);
+                                                        delayMicroseconds(500);
+                                                        digitalWrite(PUL[i], LOW);
+                                                        delayMicroseconds(500);
+                                                        cur_state[j] = (int)k/r2p;
+                                                        Serial.print('F');
+                                                        Serial.print(cur_state[i]);
+                                                        Serial.println("");
+                                                }
+                                        }
+                                        else{
+                                                for (int k = 0; k < (-current_state[i]+goal_state[i][j])*r2p*ratito2; k++)
+                                                {
+                                                        digitalWrite(PUL[i], HIGH);
+                                                        delayMicroseconds(500);
+                                                        digitalWrite(PUL[i], LOW);
+                                                        delayMicroseconds(500);
+                                                        cur_state[j] = (int)k/r2p;
+                                                        Serial.print('S');
+                                                        Serial.print(cur_state[i]);
+                                                        Serial.println("");  
+                                                }
                                         }
                                 }
                  
@@ -172,3 +213,4 @@ void fn_go_state(int current_state[2],int goal_state[5][4])
         }
 }     
 
+//check lai cho cur_state de print
