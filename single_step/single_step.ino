@@ -1,36 +1,40 @@
 #include <Servo.h>  
+#include <AccelStepper.h>
+#include <MultiStepper.h>
 
-const int servoPin[] = {10, 12};
-const int stepPin[] = {5,6}; 
-const int dirPin[] = {2,3}; 
-const int enPin[] = {8,9};
+const int servoPin[] = {3, 2};
+const int enPin[] = {10,13};
 
-Servo myservo[3]; 
+long positions[2];
+AccelStepper stepper1(1,8,9);
+AccelStepper stepper2(1,11,12);
+MultiStepper steppers;
 
-int list_state[13][4] = {
-  {30, 0, 180, 60}, 
-  {30, 130, 180, 60}, 
-  {30, 130, 180, 60}, 
-  {30, 130, 180, 0}, 
-  {30, 0, 180, 0}, 
-  {30, 0, 180, 0}, 
-  {-30, 0, 180, 0}, 
-  {-30, 130, 180, 0},
-  {-30, 130, 180, 60}, 
-  {-30, 0, 180, 60}, 
-  {0, 0, 180, 60},
-  {0, 0, 180, 60}}; 
+Servo myservo[2]; 
+
+int list_state[8][4] = {
+{0,-210,140,70},
+{0,-210,120,70},
+{0,-250,120,20},
+{0,0,160,20},
+{-30,-210,140,20},
+{-30,-210,120,20},
+{-30,-250,120,70},
+{0,0,160,70},
+}; 
 int last_state[4] = {0,0, 180, 60};
 
 void setup() {
   // put your setup code here, to run once:
   Serial.begin(9600);
-
+  stepper1.setMaxSpeed(2000.0);
+  stepper1.setAcceleration(1000.0);
+  stepper2.setMaxSpeed(2000.0);
+  stepper2.setAcceleration(1000.0);
+  steppers.addStepper(stepper1);
+  steppers.addStepper(stepper2);
   for(int a = 0; a < 2; a++)
   {
-    pinMode(stepPin[a],OUTPUT); 
-    pinMode(dirPin[a],OUTPUT);
-  
     pinMode(enPin[a],OUTPUT);
     digitalWrite(enPin[a],LOW);
   }
@@ -38,58 +42,26 @@ void setup() {
   for(int b = 0; b < 2; b++){
     myservo[b].attach(servoPin[b]);
   }
-   myservo[0].write(180);
-   myservo[1].write(60);
+   myservo[0].write(160);
+   myservo[1].write(70);
 }
 
 void loop() {
   // put your main code here, to run repeatedly: 
-   
-   for (int i = 0; i < 13; i++)
+   for (int i = 0; i < 6; i++)
    {
-    for(int j = 0; j < 4; j++){
-      if(j < 2){
-        if(last_state[j] <= list_state[i][j]){
-          digitalWrite(dirPin[j],LOW);
-          int b = (((list_state[i][j]-last_state[j])*6400L*3L)/(360L));
-          for (int k = 0; k < b; k++){
-            digitalWrite(stepPin[j],HIGH);
-            delayMicroseconds(500);
-            digitalWrite(stepPin[j],LOW);
-            delayMicroseconds(500);
-          }
-        }
-        else{
-          digitalWrite(dirPin[j],HIGH);
-          int b = ((abs(list_state[i][j]-last_state[j])*6400L*3L)/(360L));
-          for (int k = 0; k < b; k++){
-            digitalWrite(stepPin[j],HIGH);
-            delayMicroseconds(500);
-            digitalWrite(stepPin[j],LOW);
-            delayMicroseconds(500);
-         }
-       }
-       last_state[j] = list_state[i][j];
-      }
-      else{
-        if(last_state[j] < list_state[i][j]){
-          for(int k = last_state[j]; k <= list_state[i][j]; k++){
-            myservo[j-2].write(list_state[i][j]);
-            delay(15);
-          }          
-        }
-        else{
-          for(int k = last_state[j]; k >= list_state[i][j]; k--){
-            myservo[j-2].write(list_state[i][j]);
-            delay(15);          
-        }
-      }
-      last_state[j] = list_state[i][j];
-    }
-    Serial.print("Hoan thanh state thu: ");
-    Serial.println(i);
+      positions[0] = long((list_state[i][0]*6400L*3L)/(360L));
+      positions[1] = long((list_state[i][1]*6400L*3L)/(360L));
+      run_stepper(positions);
+      myservo[0].write(list_state[i][2]);
+      delay(100);
+      myservo[1].write(list_state[i][2]);
+      delay(100);
   }
 }
-   myservo[0].write(180);
-   myservo[1].write(60);
+
+void run_stepper(long positions)
+{
+  steppers.moveTo(positions);
+  steppers.runSpeedToPosition();
 }

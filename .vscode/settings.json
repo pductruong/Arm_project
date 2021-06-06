@@ -530,5 +530,20 @@
         "/home/tucuman/ros2_foxy/install/ament_clang_tidy/lib/python3.6/site-packages",
         "/home/tucuman/ros2_foxy/build/ament_clang_format",
         "/home/tucuman/ros2_foxy/install/ament_clang_format/lib/python3.6/site-packages"
-    ]
+    ],
+    "files.associations": {
+        "array": "cpp",
+        "deque": "cpp",
+        "list": "cpp",
+        "string": "cpp",
+        "unordered_map": "cpp",
+        "vector": "cpp",
+        "string_view": "cpp",
+        "initializer_list": "cpp",
+        "fstream": "cpp",
+        "future": "cpp",
+        "sstream": "cpp",
+        "streambuf": "cpp",
+        "condition_variable": "cpp"
+    }
 }
