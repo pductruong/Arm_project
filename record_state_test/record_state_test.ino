@@ -68,11 +68,8 @@ void loop() {
         positions[0] = long((dc1*6400L*3L)/(360L));
         positions[1] = long((dc2*6400L*3L)/(360L));
         run_stepper(positions);
-//        run_servo(dc3);
-        myservo[0].write(dc3);
-        delay(100);
-        myservo[1].write(dc4);
-        delay(100);
+        run_servo(dc3,0);
+        run_servo(dc4,1);
         Serial.println('D');
         inputString1 = "";
         inputString2 = "";
@@ -117,27 +114,29 @@ void run_stepper(long positions)
   steppers.runSpeedToPosition();
 }
 
-//void run_servo(int angle)
-//{
-//  int k = myservo.read();
-//  
-//  if(k < angle)
-//  {
-//    for(int c = k; c <= angle; c++)
-//    {
-//      myservo.write(c);
-//      delay(15);
-//    }
-//  }
-//  else
-//  {
-//    for (int c = k; c >= angle; c++)
-//    {
-//      myservo.write(c);
-//      delay(15);
-//    }
-//  }
-//}
+
+void run_servo(int angle, int r)
+{
+  int k = myservo[r].read();
+  
+  if(k < angle)
+  {
+    while (k < angle){
+      k++;
+      myservo[r].write(k);
+      delay(15);
+    }
+  }
+  else
+  {
+    while (k > angle)
+    {
+      k--;
+      myservo[r].write(k);
+      delay(15);
+    }
+  }
+}
 
 
 void serialEvent()
