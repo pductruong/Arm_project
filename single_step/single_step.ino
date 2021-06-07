@@ -64,8 +64,6 @@ void setup() {
 
 void loop() {
   if (stringComplete) {
-    Serial.println(inputString);
-    // clear the string:
     state = inputString.toInt();
     inputString = "";
     stringComplete = false;
